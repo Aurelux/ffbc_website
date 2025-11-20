@@ -18,11 +18,13 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 223 45% 15%;
 
-    /* Bleu Marine Français - Primary */
-    --primary: 223 100% 29%;
-    --primary-foreground: 0 0% 100%;
-    --primary-light: 223 95% 40%;
-    --primary-dark: 223 100% 20%;
+/* Vert Foncé - Primary */
+--primary: 135 24% 12%;
+--primary-foreground: 0 0% 100%; /* blanc */
+
+--primary-light: 142 24% 20%;
+--primary-dark: 142 24% 8%;
+
 
     /* Rouge Français - Accent */
     --accent: 348 83% 53%;

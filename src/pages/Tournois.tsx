@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Calendar, MapPin, Users } from "lucide-react";
+import { Calendar, MapPin, Users, Handshake, Spade, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -100,6 +100,7 @@ const Tournois = () => {
                     >
                       {tournament.type}
                     </Badge>
+                    
                     <Badge variant="outline">
                       {tournament.current_participants || 0}/{tournament.max_participants || "∞"}
                     </Badge>
@@ -110,6 +111,38 @@ const Tournois = () => {
                       <Calendar size={16} className="mr-2 text-accent" />
                       {new Date(tournament.start_date).toLocaleDateString()}
                     </div>
+                    <div className="flex items-center text-sm mt-1">
+  <Spade size={16} className="mr-2 text-accent" />
+  {tournament.game_type === "belote" ? (
+    <span className="font-medium">Belote</span>
+  ) : (
+    <span className="font-medium">Coinche</span>
+  )}
+</div>
+
+{/* Options Coinche */}
+{tournament.game_type === "coinche" && (
+  <div className="flex flex-col ml-6 mt-1 text-xs text-muted-foreground">
+    {tournament.tout_atout && (
+      <div className="flex items-center">
+        <CheckCircle2 size={14} className="mr-1 text-primary" />
+        Tout atout et Sans Atout
+      </div>
+    )}
+
+    
+
+    {!tournament.tout_atout && !tournament.sans_atout && (
+      <div className="text-muted-foreground italic">
+        Variantes classiques
+      </div>
+    )}
+  </div>
+)}
+                    <div className="flex items-center text-sm font-medium text-accent">
+    <Handshake className="mr-2 text-accent" size={16} />
+    {tournament?.registration_type === "team" ? "Inscription en duo" : "Inscription individuelle"}
+  </div>
                     <div className="flex items-center text-sm">
                       <MapPin size={16} className="mr-2 text-accent" />
                       {tournament.city}
@@ -118,6 +151,7 @@ const Tournois = () => {
                       <Users size={16} className="mr-2 text-accent" />
                       {tournament.current_participants || 0} participants inscrits
                     </div>
+                    
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -125,7 +159,9 @@ const Tournois = () => {
                     <TournamentRegistrationDialog
                       tournamentId={tournament.id}
                       tournamentName={tournament.name}
+                      registrationType={tournament.registration_type}
                       onRegistrationSuccess={fetchTournaments}
+                      
                     />
                   ) : (
                     <Button className="w-full bg-primary hover:bg-primary-light text-primary-foreground" disabled>

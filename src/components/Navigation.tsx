@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import Logo from "/src/logo.png"
+import Logosmall from "/src/logosmall.png"
 
 
 export const Navigation = () => {
@@ -29,19 +29,20 @@ export const Navigation = () => {
   ];
 
   return (
-    <nav className="fixed top-0 w-full bg-primary/95 backdrop-blur-sm z-50 border-b border-primary-light shadow-md">
+    <nav className="fixed top-0 w-full bg-green-950 backdrop-blur-sm z-50 border-b border-primary-light shadow-md">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-background rounded-full flex items-center justify-center shadow-lg overflow-hidden">
-    <img src={Logo} alt="FFBC Logo" className="w-full h-full object-contain" />
-  </div>
+            <div className="w-12 h-12 bg-green-950  flex items-center justify-center shadow-lg overflow-hidden">
+  <img src={Logosmall} alt="FFBC Logo" className="w-full h-full object-contain" />
+</div>
+
             <span className="text-primary-foreground font-bold text-lg hidden md:block">
               Fédération Française de Belote et Coinche
             </span>
             <span className="text-primary-foreground font-bold text-lg md:hidden">
-              FFBC
+              Fédération Française de Belote et Coinche
             </span>
           </Link>
 

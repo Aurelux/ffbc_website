@@ -30,10 +30,13 @@ const Regles = () => {
                 Le règlement officiel de la Fédération Française de Belote et Coinche définit les règles 
                 applicables lors de tous les tournois et compétitions organisés sous l'égide de la FFBC.
               </p>
-              <Button className="bg-accent hover:bg-accent-dark text-accent-foreground">
-                <Download className="mr-2" size={18} />
-                Télécharger le règlement complet (PDF)
-              </Button>
+              <Button
+  className="max-w-full flex-1 bg-accent hover:bg-accent-dark text-accent-foreground text-sm sm:text-base whitespace-normal break-words"
+>
+  <Download className="mr-2 shrink-0" size={18} />
+  Télécharger le règlement complet (PDF)
+</Button>
+
             </CardContent>
           </Card>
 

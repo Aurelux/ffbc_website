@@ -9,7 +9,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
-import Logo from "/src/logo.png"
+import Logo from "/src/logo.jpg"
 
 const Index = () => {
   const { t } = useLanguage();
@@ -55,17 +55,17 @@ const Index = () => {
           {/* Member Card - Only shown when user is logged in */}
           {user && profile && (
             <div className="mb-12 flex justify-center">
-              <Card className="w-full max-w-md border-2 border-primary shadow-elegant bg-gradient-to-br from-card to-card/50 overflow-hidden">
+              <Card className="w-full max-w-md border-2 border-green-950 shadow-elegant bg-gradient-to-br from-card to-card/50 overflow-hidden">
                 <div className="h-24 bg-gradient-tricolor" />
                 <CardContent className="relative pt-0 pb-6 px-6">
                   <div className="flex flex-col items-center -mt-14">
                     <Avatar className="w-24 h-24 border-4 border-card shadow-xl">
                       <AvatarImage src={profile.photo_url || ""} alt={`${profile.first_name} ${profile.last_name}`} />
-                      <AvatarFallback className="text-2xl font-bold bg-primary text-primary-foreground">
+                      <AvatarFallback className="text-2xl font-bold bg-green-950 text-green-foreground">
                         {profile.first_name?.[0]}{profile.last_name?.[0]}
                       </AvatarFallback>
                     </Avatar>
-                    <h3 className="mt-4 text-2xl font-bold text-primary">
+                    <h3 className="mt-4 text-2xl font-bold text-green-950">
                       {profile.first_name} {profile.last_name}
                     </h3>
                     <p className="text-sm text-muted-foreground uppercase tracking-wider mt-1">
@@ -74,11 +74,11 @@ const Index = () => {
                     
                     <div className="w-full mt-6 space-y-3">
                       {license && (
-                        <div className="flex items-center justify-between p-3 bg-primary/5 rounded-lg border border-primary/20">
+                        <div className="flex items-center justify-between p-3 bg-green-300 rounded-lg border border-green-950">
                           <span className="text-sm font-medium text-muted-foreground">
                             {t.home.memberCard.licenseNumber}
                           </span>
-                          <span className="font-mono font-bold text-primary">
+                          <span className="font-mono font-bold text-green-950">
                             {license.license_number}
                           </span>
                         </div>
@@ -110,9 +110,10 @@ const Index = () => {
 
           <div className="text-center">
           <div className="mb-8 inline-block">
-            <div className="w-36 h-36 bg-background rounded-full flex items-center justify-center shadow-lg overflow-hidden">
-    <img src={Logo} alt="FFBC Logo" className="w-full h-full object-contain" />
-  </div>
+            <div className="w-full h-full bg-green-950 flex items-center justify-center shadow-lg overflow-hidden">
+  <img src={Logo} alt="FFBC Logo" className="w-full h-full object-contain" />
+</div>
+
           </div>
           <h1 className="text-5xl md:text-7xl font-bold text-primary mb-6 leading-tight">
             {t.home.hero.title}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -14,16 +14,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Handshake, UserCheck } from "lucide-react";
 
 interface TournamentRegistrationDialogProps {
   tournamentId: string;
   tournamentName: string;
+  registrationType: "individual" | "team";
   onRegistrationSuccess?: () => void;
 }
 
 export const TournamentRegistrationDialog = ({
   tournamentId,
   tournamentName,
+  registrationType,
   onRegistrationSuccess,
 }: TournamentRegistrationDialogProps) => {
   const { user } = useAuth();
@@ -31,13 +34,29 @@ export const TournamentRegistrationDialog = ({
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [teamName, setTeamName] = useState("");
+  const [partnerLicense, setPartnerLicense] = useState("");
+  const [myLicense, setMyLicense] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // 🔹 Récupère automatiquement le numéro de licence du joueur connecté
+  useEffect(() => {
+    const fetchLicense = async () => {
+      if (!user) return;
+      const { data, error } = await supabase
+        .from("licenses")
+        .select("license_number")
+        .eq("user_id", user.id)
+        .single();
+      if (!error && data) setMyLicense(data.license_number);
+    };
+    fetchLicense();
+  }, [user]);
 
   const handleRegister = async () => {
     if (!user) {
       toast({
-        title: t.common?.error || "Error",
-        description: t.tournaments?.mustBeLoggedIn || "You must be logged in to register",
+        title: t.common?.error || "Erreur",
+        description: "Vous devez être connecté pour vous inscrire.",
         variant: "destructive",
       });
       return;
@@ -46,43 +65,71 @@ export const TournamentRegistrationDialog = ({
     setLoading(true);
 
     try {
-      const { error } = await supabase
-        .from("tournament_registrations")
-        .insert({
-          tournament_id: tournamentId,
-          user_id: user.id,
-          team_name: teamName || null,
-          payment_status: "pending",
-        });
+      let payload: any = {
+        tournament_id: tournamentId,
+        user_id: user.id,
+        payment_status: "pending",
+      };
 
-      if (error) throw error;
+      if (registrationType === "team") {
+        if (!teamName || !partnerLicense) {
+          toast({
+            title: "Informations manquantes",
+            description: "Veuillez renseigner le nom de l'équipe et le numéro de licence de votre coéquipier.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
 
-      // Update tournament participant count
-      const { data: tournament } = await supabase
-        .from("tournaments")
-        .select("current_participants")
-        .eq("id", tournamentId)
-        .single();
+        // Cherche le coéquipier via sa licence
+        const { data: partnerData, error: partnerError } = await supabase
+          .from("licenses")
+          .select("user_id")
+          .eq("license_number", partnerLicense)
+          .single();
 
-      if (tournament) {
-        await supabase
-          .from("tournaments")
-          .update({ current_participants: (tournament.current_participants || 0) + 1 })
-          .eq("id", tournamentId);
+        if (partnerError || !partnerData) {
+          throw new Error("Aucun joueur trouvé avec ce numéro de licence.");
+        }
+
+        payload = {
+          ...payload,
+          team_name: teamName,
+          partner_id: partnerData.user_id,
+          my_license: myLicense,
+          partner_license: partnerLicense,
+        };
       }
 
+      const { error } = await supabase.from("tournament_registrations").insert(payload);
+      if (error) throw error;
+const { data: tournament } = await supabase .from("tournaments") .select("current_participants,registration_type") .eq("id", tournamentId) .single();
+      // 🔹 Mise à jour du nombre de participants
+if (tournament) {
+  const increment = tournament.registration_type === "team" ? 2 : 1;
+
+  await supabase
+    .from("tournaments")
+    .update({
+      current_participants: (tournament.current_participants || 0) + increment,
+    })
+    .eq("id", tournamentId);
+}
       toast({
-        title: t.tournaments?.registrationSuccess || "Registration successful!",
-        description: t.tournaments?.registrationSuccessDesc || "You have been registered for the tournament",
+        title: "Inscription confirmée !",
+        description:
+          "Votre inscription est enregistrée. Vous pourrez la retrouver dans votre profil. ⚠️ Vous pouvez l’annuler jusqu’à 2 jours avant le tournoi, passé ce délai elle sera considérée comme forfait.",
       });
 
       setOpen(false);
       setTeamName("");
+      setPartnerLicense("");
       onRegistrationSuccess?.();
-    } catch (error: any) {
+    } catch (err: any) {
       toast({
-        title: t.common?.error || "Error",
-        description: error.message,
+        title: "Erreur",
+        description: err.message,
         variant: "destructive",
       });
     } finally {
@@ -94,28 +141,96 @@ export const TournamentRegistrationDialog = ({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="w-full bg-primary hover:bg-primary-light text-primary-foreground">
-          {t.tournaments?.register || "S'inscrire au tournoi"}
+          {registrationType === "team" ? (
+            <>
+              <Handshake size={18} className="mr-2" />
+              S'inscrire en duo
+            </>
+          ) : (
+            <>
+              <UserCheck size={18} className="mr-2" />
+              S'inscrire au tournoi
+            </>
+          )}
         </Button>
       </DialogTrigger>
+
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t.tournaments?.registerFor || "S'inscrire à"} {tournamentName}</DialogTitle>
+          <DialogTitle>
+            {registrationType === "team"
+              ? `Inscription en duo - ${tournamentName}`
+              : `Inscription - ${tournamentName}`}
+          </DialogTitle>
           <DialogDescription>
-            {t.tournaments?.enterTeamName || "Entrez le nom de votre équipe (optionnel)"}
+            {registrationType === "team"
+              ? "Complétez les informations de votre équipe avant de confirmer votre inscription."
+              : "Confirmez simplement votre participation au tournoi."}
           </DialogDescription>
         </DialogHeader>
+
         <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="team-name">{t.tournaments?.teamName || "Nom d'équipe"}</Label>
-            <Input
-              id="team-name"
-              placeholder={t.tournaments?.teamNamePlaceholder || "Mon équipe"}
-              value={teamName}
-              onChange={(e) => setTeamName(e.target.value)}
-            />
-          </div>
+          {registrationType === "team" ? (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="team-name">Nom de l'équipe</Label>
+                <Input
+                  id="team-name"
+                  placeholder="Les As du Trèfle"
+                  value={teamName}
+                  onChange={(e) => setTeamName(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="my-license">Votre numéro de licence</Label>
+                <Input
+                  id="my-license"
+                  value={myLicense}
+                  disabled
+                  className="bg-gray-100 cursor-not-allowed"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="partner-license">Numéro de licence du coéquipier</Label>
+                <Input
+                  id="partner-license"
+                  placeholder="Ex : 12345678"
+                  value={partnerLicense}
+                  onChange={(e) => setPartnerLicense(e.target.value)}
+                />
+              </div>
+              <p className="text-sm text-muted-foreground">
+  Vous pourrez retrouver votre inscription à ce tournoi dans votre profil.<br/> 
+  Vous pouvez l’annuler jusqu’à 2 jours avant le tournoi, sinon vous serez considéré(s) comme forfait. <br/> 
+  Les frais d’inscription seront à régler sur place le jour du tournoi.
+</p>
+            </>
+          ) : (
+            <>
+            <div className="space-y-2">
+                <Label htmlFor="my-license">Votre numéro de licence</Label>
+                <Input
+                  id="my-license"
+                  value={myLicense}
+                  disabled
+                  className="bg-gray-100 cursor-not-allowed"
+                />
+              </div>
+            <p className="text-sm text-muted-foreground">
+  Vous pourrez retrouver votre inscription à ce tournoi dans votre profil.<br/> 
+  Vous pouvez l’annuler jusqu’à 2 jours avant le tournoi, sinon vous serez considéré(s) comme forfait. <br/> 
+  Les frais d’inscription seront à régler sur place le jour du tournoi.
+</p>
+</>
+
+
+            
+          )}
+
           <Button onClick={handleRegister} disabled={loading} className="w-full">
-            {loading ? (t.common?.loading || "Loading...") : (t.tournaments?.confirm || "Confirmer l'inscription")}
+            {loading ? "Inscription en cours..." : "Confirmer l'inscription"}
           </Button>
         </div>
       </DialogContent>

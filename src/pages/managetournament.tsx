@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft } from "lucide-react";
-import Logo from "/src/logo.png"
+import Logo from "/src/logosmall.png"
 
 const ManageTournament = () => {
   const { id } = useParams();
@@ -142,11 +142,11 @@ const ManageTournament = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
       {/* --- BARRE DE NAVIGATION --- */}
-      <div className="flex items-center justify-between p-4 bg-white shadow-md sticky top-0 z-50">
-        <Button variant="ghost" onClick={() => navigate(-1)} className="flex items-center gap-2">
+      <div className="flex items-center justify-between p-4 bg-green-950 shadow-md sticky top-0 z-50">
+        <Button variant="ghost" onClick={() => navigate(-1)} className="flex items-center gap-2 text-white hover:text-white/80">
           <ChevronLeft size={20} /> Retour
         </Button>
-        <h2 className="text-xl font-semibold text-center">{tournament.name}</h2>
+        <h2 className="text-xl font-semibold text-center text-white">{tournament.name}</h2>
         <img src={Logo} alt="Logo" className="h-8 w-auto" />
       </div>
 
